@@ -7,6 +7,7 @@
     <title>Grocery List</title>
 
     <script defer src="https://unpkg.com/alpinejs@3.10.5/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
@@ -20,13 +21,18 @@
 </head>
 
 <body>
-    <div class="container-fluid mx-2" x-data="groceryListApp()">
-        <div class="my-3"><img src="grocery_bag_icon.png" class="mx-auto d-block" alt="Icon of a grocery bag"></div>
+    <div class="container-sm mx-auto app-container" x-data="groceryListApp()" x-init="loadState()">
+
+        <div class="my-3">
+            <a href="index.html">
+                <img src="grocery_bag_icon.png" class="mx-auto d-block" alt="Icon of a grocery bag"></a>
+        </div>
+
         <div class="my-3 input_area">
             <form>
                 <fieldset>
-                    <input id="dontautofillme" class="recipe_input mx-auto d-block" type="text"
-                        @keydown.enter="addRecipe" placeholder="Paste recipe URLs to make a shopping list" autofocus />
+                    <input class="recipe_input mx-auto d-block" type="text" @keydown.enter="addRecipe"
+                        placeholder="Paste recipe URLs to make a shopping list" autofocus />
                 </fieldset>
             </form>
         </div>
@@ -57,20 +63,51 @@
                     <input type="text" x-show="ingredient.editing" x-model="ingredient.item" :value="ingredient.item"
                         @click.away="ingredient.editing=false" @keydown.enter="ingredient.editing=false"
                         class="task_edit" :id="`task_edit-${ingredient.id}`" />
-                    <span class="task-remove ms-auto" @click="remove_task(event, ingredient.id)">&times;</span>
+                    <span class="task-remove ms-auto" @click="removeIngredient(event, ingredient.id)">&times;</span>
                 </div>
             </template>
             <div class="input_area todo">
                 <form>
                     <fieldset>
                         <input type="checkbox" />
-                        <input id="dontautofillmeeither" class="ingredient_input" type="text" placeholder="milk"
-                            @keydown.enter="addIngredient" />
+                        <input class="ingredient_input" type="text" placeholder="milk" @keydown.enter="addIngredient" />
                     </fieldset>
                 </form>
             </div>
+            <div class="my-3 text-center">
+                <input class="btn btn-secondary" type=" button" x-show="recipe_urls.length" value="Share this list"
+                    @click="mobileShare(event)" />
+            </div>
+        </div>
+
+        <div class="modal" id="shareModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Share this grocery list</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <!-- Target -->
+                            <input class="form-control" id="share-url" value="https://github.com/zenorocha/clipboard.js.git">
+                                <!-- Trigger -->
+                                <button class="btn btn-outline-secondary" data-clipboard-target="#share-url">
+                                    <img src="clippy.svg" alt="Copy to clipboard" width="25px">
+                                </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        var clipboard = new ClipboardJS('.btn');
+    </script>
+
 </body>
 
 </html>
