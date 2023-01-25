@@ -2,6 +2,10 @@ body {
   padding-bottom: 50px;
 }
 
+.app-container {
+  max-width: 500px;
+}
+
 .section-heading {
   font-size: 1.6rem;
   font-weight: 1000;
@@ -14,31 +18,19 @@ body {
   height: 2rem;
 }
 
+.ingredient_input {
+  margin: 0 0.8rem;
+  min-width: 70%;
+}
+
+.task_edit {
+  min-width: 70%;
+  height: 2rem;
+  margin: 0 0.8rem;
+}
+
 .recipe_url_list {
   word-break: break-word;
-}
-
-.todoBtn {
-  cursor: pointer;
-  background-color: #afe3af;
-  border: 0.1rem solid #eaf2ff;
-  border-radius: .4rem;
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 900;
-  height: 2.1rem;
-  letter-spacing: .1rem;
-  line-height: 1.2rem;
-  padding: 0 1.0rem;
-  text-align: center;
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transition: 0.3s;
-}
-
-.todoBtn:hover {
-  background-color: #bdc7d9;
 }
 
 .todo {
@@ -47,11 +39,6 @@ body {
   min-width: 300px;
   margin: 0.3em auto;
   padding: 0 1.0rem;
-}
-
-.ingredient_input {
-  margin: 0 0.8rem;
-  min-width: 70%;
 }
 
 .task-remove {
@@ -71,20 +58,6 @@ body {
   padding: 0 1.0rem;
 }
 
-.task_edit {
-  min-width: 70%;
-  height: 2rem;
-  margin: 0 0.8rem;
-}
-
 .completed {
   text-decoration: line-through;
-}
-
-.empty_task_msg {
-  font-size: 1.2rem;
-  font-weight: 900;
-  letter-spacing: .1rem;
-  line-height: 1.2rem;
-  margin: 0.3em auto;
 }
