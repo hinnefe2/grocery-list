@@ -38,46 +38,50 @@
         </div>
 
         <div class="my-3 recipe_url_list">
-            <div class="section-heading" x-show="recipe_urls.length">
+            <div class="section-heading" x-cloak x-show="recipe_urls.length">
                 <h2>Recipes</h2>
             </div>
             <template x-show="recipe_urls.length" x-for="url in recipe_urls" :key="url.recipe_id">
                 <div class="todo w-100 d-flex">
-                    <div class="recipe-item" :class="{'completed' : url.completed }">
-                        <a x-text="url.item" x-bind:href="url.item" target="_blank" rel="noopener noreferrer"></a>
+                    <div class="recipe-item">
+                        <a x-text="url.item" x-bind:href="url.item" x-bind:class="url.loading ? 'fade' : ''" target="_blank" rel="noopener noreferrer"></a>
                     </div>
                     <span class="task-remove ms-auto" @click="removeRecipe(event, url.recipe_id)">&times;</span>
                 </div>
             </template>
         </div>
 
-        <div class="mt-3 mb-6 task_list" x-show="ingredients.length">
+        <div class="mt-3 mb-6 task_list" x-show="ingredients.length" x-cloak>
             <div class="section-heading" x-show="ingredients.length">
                 <h2>Shopping List</h2>
             </div>
-            <template x-show="ingredients.length" x-for="ingredient in ingredients" :key="ingredient.id">
-                <div class="todo w-100 d-flex">
-                    <input type="checkbox" @click="completeTodo(ingredient)" />
-                    <div x-text="ingredient.item" class="task-item" @click="setEdit(ingredient)"
-                        x-show="!ingredient.editing" :class="{'completed' : ingredient.completed }"></div>
-                    <input type="text" x-show="ingredient.editing" x-model="ingredient.item" :value="ingredient.item"
-                        @click.away="ingredient.editing=false" @keydown.enter="ingredient.editing=false"
-                        class="task_edit" :id="`task_edit-${ingredient.id}`" />
-                    <span class="task-remove ms-auto" @click="removeIngredient(event, ingredient.id)">&times;</span>
+            <div class="paper-background">
+                <template x-show="ingredients.length" x-for="ingredient in ingredients" :key="ingredient.id">
+                    <div class="todo w-100 d-flex">
+                        <input type="checkbox" @click="completeTodo(ingredient)" />
+                        <div x-text="ingredient.item" class="task-item" @click="setEdit(ingredient)"
+                            x-show="!ingredient.editing" :class="{'completed' : ingredient.completed }"></div>
+                        <input type="text" x-show="ingredient.editing" x-model="ingredient.item"
+                            :value="ingredient.item" @click.away="ingredient.editing=false"
+                            @keydown.enter="ingredient.editing=false" class="task_edit"
+                            :id="`task_edit-${ingredient.id}`" />
+                        <span class="task-remove ms-auto" @click="removeIngredient(event, ingredient.id)">&times;</span>
+                    </div>
+                </template>
+                <div class="input_area todo">
+                    <form>
+                        <fieldset>
+                            <input type="checkbox" />
+                            <input class="ingredient_input" type="text" placeholder="milk"
+                                @keydown.enter="addIngredient" />
+                        </fieldset>
+                    </form>
                 </div>
-            </template>
-            <div class="input_area todo">
-                <form>
-                    <fieldset>
-                        <input type="checkbox" />
-                        <input class="ingredient_input" type="text" placeholder="milk" @keydown.enter="addIngredient" />
-                    </fieldset>
-                </form>
             </div>
-            <div class="my-3 text-center">
-                <input class="btn btn-secondary" type=" button" x-show="recipe_urls.length" value="Share this list"
-                    @click="mobileShare(event)" />
-            </div>
+        </div>
+        <div class="my-3 text-center">
+            <input class="btn btn-secondary" type=" button" x-cloak x-show="recipe_urls.length" value="Share this list"
+                @click="mobileShare(event)" />
         </div>
 
         <div class="modal" id="shareModal" tabindex="-1">
@@ -88,12 +92,11 @@
                     </div>
                     <div class="modal-body">
                         <div class="input-group">
-                            <!-- Target -->
-                            <input class="form-control" id="share-url" value="https://github.com/zenorocha/clipboard.js.git">
-                                <!-- Trigger -->
-                                <button class="btn btn-outline-secondary" data-clipboard-target="#share-url">
-                                    <img src="clippy.svg" alt="Copy to clipboard" width="25px">
-                                </button>
+                            <input class="form-control" id="share-url"
+                                value="https://github.com/zenorocha/clipboard.js.git">
+                            <button class="btn btn-outline-secondary" data-clipboard-target="#share-url">
+                                <img src="clippy.svg" alt="Copy to clipboard" width="25px">
+                            </button>
                         </div>
                     </div>
                     <div class="modal-footer">

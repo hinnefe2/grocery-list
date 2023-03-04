@@ -1,3 +1,5 @@
+[x-cloak] { display: none !important; }
+
 body {
   padding-bottom: 50px;
 }
@@ -60,4 +62,17 @@ body {
 
 .completed {
   text-decoration: line-through;
+}
+
+.fade {
+  animation: fade-in-out 4s infinite;
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }

@@ -24,13 +24,14 @@ const groceryListApp = () => ({
         };
     },
     addRecipe(event) {
-        // supress the submit so the the page does not refersh 
+        // suppress the submit so the the page does not refresh
         event.preventDefault();
 
         // retrieve data directly from DOM with magic property root
         var recipe_url = this.$root.querySelector('.recipe_input').value;
 
         if (recipe_url) {
+
             const recipe_id = "id_" + Math.random().toString(16).slice(2)
             // use spread function to add the new recipe url
             this.setRecipeURLs([
@@ -39,7 +40,8 @@ const groceryListApp = () => ({
                     recipe_id,
                     item: recipe_url,
                     completed: false,
-                    editing: false
+                    editing: false,
+                    loading: true
                 }
             ]);
 
@@ -47,14 +49,18 @@ const groceryListApp = () => ({
                 .then((response) => response.json())
                 .then((data) => {
                     data.ingredients.map(i => { this.addIngredient(event, i, recipe_id) })
+                }).then((_) => {
+                    this.recipe_urls.find((recipe) => recipe.recipe_id == recipe_id).loading = false
                 });
 
-            // reset the input field 
+            // reset the input field
             this.$root.querySelector('.recipe_input').value = '';
+
         }
+
     },
     addIngredient(event, ingredient, recipe_id = -1) {
-        // supress the submit so the the page does not refersh 
+        // suppress the submit so the the page does not refresh
         event.preventDefault();
 
         if (ingredient) {
@@ -87,12 +93,12 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            // reset the input field 
+            // reset the input field
             this.$root.querySelector('.ingredient_input').value = '';
         }
     },
     removeIngredient(event, id) {
-        // so supress the submit so the the page does not refersh 
+        // so suppress the submit so the the page does not refresh
         event.preventDefault();
 
         // we will use filter to remove todos based on id
@@ -101,7 +107,7 @@ const groceryListApp = () => ({
         // this.saveState();
     },
     removeRecipe(event, recipe_id) {
-        // so supress the submit so the the page does not refersh 
+        // so suppress the submit so the the page does not refresh
         event.preventDefault();
 
         // we will use filter to remove todos based on id
