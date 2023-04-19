@@ -45,7 +45,7 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            fetch(`https://faas.schollz.com/?import=github.com/schollz/ingredients&func=IngredientsFromURL(%22${recipe_url}%22)`)
+            fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app?recipe_url=${recipe_url}`)
                 .then((response) => response.json())
                 .then((data) => {
                     data.ingredients.map(i => { this.addIngredient(event, i, recipe_id) })
@@ -71,7 +71,7 @@ const groceryListApp = () => ({
                 {
                     id,
                     recipe_id: recipe_id,
-                    item: `${ingredient.measure.amount} ${ingredient.measure.name} ${ingredient.name}`,
+                    item: ingredient,
                     completed: false,
                     editing: false
                 }
