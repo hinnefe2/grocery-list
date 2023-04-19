@@ -149,4 +149,4 @@ def main():
     # strings which include tsp / tbsp units
     wout_tsp_tbsp = [strip_parentheses_grams(strip_tsp_tbsp(ing)) for ing in in_order]
 
-    return json.dumps({"ingredients": wout_tsp_tbsp})
+    return {"ingredients": wout_tsp_tbsp}
