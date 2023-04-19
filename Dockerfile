@@ -12,4 +12,4 @@ RUN mkdir model-files
 COPY model-files model-files
 COPY service.py .
 
-CMD exec uvicorn service:app --host 0.0.0.0 --port ${PORT} --workers 1
+CMD exec gunicorn -b 0.0.0.0:${PORT} service:app 
