@@ -11,5 +11,6 @@ RUN mkdir model-files
 
 COPY model-files model-files
 COPY service.py .
+COPY config.py .
 
 CMD exec gunicorn -b 0.0.0.0:${PORT} service:app 
