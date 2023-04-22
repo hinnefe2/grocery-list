@@ -7,8 +7,9 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy site to GCS
     runs-on: ubuntu-latest
+    environment: gcs-site-deploy
     steps:
       - uses: actions/checkout@v2
 
