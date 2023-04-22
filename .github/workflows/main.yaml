@@ -17,4 +17,4 @@ jobs:
         with:
           secrets: ${{ secrets.google_service_account_credentials }}
           bucket: 'makeagrocerylist.com'
-          exclude: '.*\.md$|\.gitignore$|\.git/.*$|\.github/.*$'
+          exclude: '.*\.md$|\.gitignore$|\.git/.*$|\.github/.*$|.*\.py$|Dockerfile|.*\.txt$'
