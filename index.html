@@ -4,6 +4,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="google" content="notranslate" />
+    <meta name="description" content="Generate a sorted grocery list from recipe URLs" />
     <title>Grocery List</title>
 
     <script defer src="https://unpkg.com/alpinejs@3.10.5/dist/cdn.min.js"></script>
@@ -17,7 +18,7 @@
 
     <script src="grocerylist.js"></script>
     <!-- hit the API on page load to warm up the service -->
-    <script>fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app`)</script>
+    <script>fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app`).then((response) => {})</script>
     <link rel="stylesheet" href="grocerylist.css">
 
 </head>
