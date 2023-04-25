@@ -1,8 +1,22 @@
 const groceryListApp = () => ({
-    ingredients: [],
+    _api_url: 'grocery-list-5ybpug4gia-uc.a.run.app',
+    _api_warmup: fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app`).then((response) => {}),
+    // keys here must match the grocery store section ids returned by the API
+    ingredients: {
+        "0": [],
+        "1": [],
+        "2": [],
+        "3": [],
+        "4": [],
+        "5": [],
+        "6": [],
+        "7": [],
+        "8": [],
+        "9": [],
+    },
     recipe_urls: [],
-    setIngredients(ingredients) {
-        this.ingredients = ingredients;
+    setIngredients(section, ingredients) {
+        this.ingredients[section] = ingredients;
         this.saveState();
     },
     setRecipeURLs(recipe_urls) {
@@ -45,11 +59,14 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app?recipe_url=${recipe_url}`)
+            fetch(`https://${this._api_url}?recipe_url=${recipe_url}`)
                 .then((response) => response.json())
                 .then((data) => {
-                    data.ingredients.map(i => { this.addIngredient(event, i, recipe_id) })
-                }).then((_) => {
+                    Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
+                      ingredient_list.map(i => {
+                        this.addIngredient(event, section, i, recipe_id) })
+                    })
+                }).finally((_) => {
                     this.recipe_urls.find((recipe) => recipe.recipe_id == recipe_id).loading = false
                 });
 
@@ -59,35 +76,38 @@ const groceryListApp = () => ({
         }
 
     },
-    addIngredient(event, ingredient, recipe_id = -1) {
+    addIngredient(event, section, ingredient, recipe_id = -1) {
         // suppress the submit so the the page does not refresh
         event.preventDefault();
 
         if (ingredient) {
             const id = "id_" + Math.random().toString(16).slice(2)
             // use spread function to add new todo
-            this.setIngredients([
-                ...this.ingredients,
+            this.setIngredients(section,
+                [
+                ...this.ingredients[section],
                 {
                     id,
                     recipe_id: recipe_id,
-                    item: ingredient,
+                    item: ingredient.name,
                     completed: false,
                     editing: false
                 }
             ]);
         } else {
             // retrieve data directly from DOM with magic property root
-            var ingredient = this.$root.querySelector('.ingredient_input').value;
+            var section = '9';
+            var ingredient_name = this.$root.querySelector('.ingredient_input').value;
             const id = "id_" + Math.random().toString(16).slice(2)
 
             // use spread function to add new todo
-            this.setIngredients([
-                ...this.ingredients,
+            this.setIngredients(section,
+                [
+                ...this.ingredients[section],
                 {
                     id,
                     recipe_id: recipe_id,
-                    item: ingredient,
+                    item: ingredient_name,
                     completed: false,
                     editing: false
                 }
@@ -102,7 +122,9 @@ const groceryListApp = () => ({
         event.preventDefault();
 
         // we will use filter to remove todos based on id
-        this.setIngredients(this.ingredients.filter((todo) => todo.id !== id));
+        Object.entries(this.ingredients).forEach(([section, ingredient_list]) => {
+            this.setIngredients(section, ingredient_list.filter((todo) => todo.id !== id))
+        });
 
         // this.saveState();
     },
@@ -112,7 +134,9 @@ const groceryListApp = () => ({
 
         // we will use filter to remove todos based on id
         this.setRecipeURLs(this.recipe_urls.filter((recipe) => recipe.recipe_id !== recipe_id));
-        this.setIngredients(this.ingredients.filter((todo) => todo.recipe_id !== recipe_id));
+        Object.entries(this.ingredients).forEach(([section, ingredient_list]) => {
+            this.setIngredients(section, ingredient_list.filter((todo) => todo.recipe_id !== recipe_id))
+        });
 
         // this.saveState();
     },

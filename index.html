@@ -26,9 +26,8 @@
         crossorigin="anonymous"></script>
 
     <script src="grocerylist.js"></script>
-    <!-- hit the API on page load to warm up the service -->
-    <script>fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app`).then((response) => {})</script>
     <link rel="stylesheet" href="grocerylist.css">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" />
     <link rel="shortcut icon" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
 
@@ -65,21 +64,23 @@
             </template>
         </div>
 
-        <div class="mt-3 mb-6 task_list" x-show="ingredients.length" x-cloak>
-            <div class="section-heading" x-show="ingredients.length">
-                <h2>Shopping List</h2>
-            </div>
+        <div class="mt-3 mb-6 task_list">
             <div class="paper-background">
-                <template x-show="ingredients.length" x-for="ingredient in ingredients" :key="ingredient.id">
-                    <div class="todo w-100 d-flex">
-                        <input type="checkbox" @click="completeTodo(ingredient)" />
-                        <div x-text="ingredient.item" class="task-item" @click="setEdit(ingredient)"
-                            x-show="!ingredient.editing" :class="{'completed' : ingredient.completed }"></div>
-                        <input type="text" x-show="ingredient.editing" x-model="ingredient.item"
-                            :value="ingredient.item" @click.away="ingredient.editing=false"
-                            @keydown.enter="ingredient.editing=false" class="task_edit"
-                            :id="`task_edit-${ingredient.id}`" />
-                        <span class="task-remove ms-auto" @click="removeIngredient(event, ingredient.id)">&times;</span>
+                <template x-for="[section, section_items] in Object.entries(ingredients)" :key="section">
+                    <div class="w-100" x-show="(section_items.length) || (section === '9')" x-cloak>
+                        <img class="img-fluid mx-auto d-block mt-5" :src="`images/${section}.png`" src="images/vegetables.png" width="50px" height="50px">
+                        <template x-for="ingredient in section_items" :key="ingredient.id">
+                            <div class="todo w-100 d-flex">
+                                <input type="checkbox" @click="completeTodo(ingredient)" />
+                                <div x-text="ingredient.item" class="task-item" @click="setEdit(ingredient)"
+                                    x-show="!ingredient.editing" :class="{'completed' : ingredient.completed }"></div>
+                                <input type="text" x-show="ingredient.editing" x-model="ingredient.item"
+                                    :value="ingredient.item" @click.away="ingredient.editing=false"
+                                    @keydown.enter="ingredient.editing=false" class="task_edit"
+                                    :id="`task_edit-${ingredient.id}`" />
+                                <span class="task-remove ms-auto" @click="removeIngredient(event, ingredient.id)">&times;</span>
+                            </div>
+                        </template>
                     </div>
                 </template>
                 <div class="input_area todo">

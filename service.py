@@ -5,6 +5,8 @@ import re
 
 import requests as req
 
+from itertools import groupby
+from operator import itemgetter
 from typing import List, Optional
 
 from bs4 import BeautifulSoup
@@ -67,7 +69,8 @@ def parse_jtr(recipe_url: str) -> Optional[List[str]]:
 
     try:
         response = req.get(
-            f"https://www.justtherecipe.com/extractRecipeAtUrl?url={recipe_url}", timeout=5
+            f"https://www.justtherecipe.com/extractRecipeAtUrl?url={recipe_url}",
+            timeout=5,
         )
     except req.exceptions.ReadTimeout:
         return None
@@ -123,7 +126,7 @@ def parse_response(response: req.Response) -> List[str]:
 def classify_ingredient(pipe: Pipeline, ingredient: str) -> int:
     label = pipe(ingredient).pop(0)["label"]
     print(f"\t{label:<16} {ingredient}")
-    return LABEL2ID[label] 
+    return LABEL2ID[label]
 
 
 app = Flask(__name__)
@@ -143,10 +146,22 @@ def main():
 
     ingredients = parse_response(response)
 
-    in_order = sorted(ingredients, key=lambda ing: classify_ingredient(pipe, ing))
-
-    # strip tsp/tbsp after classifying because the classifier was trained on ingredient
+    # strip tsp/tbsp separate from classifying because the classifier was trained on ingredient
     # strings which include tsp / tbsp units
-    wout_tsp_tbsp = [strip_parentheses_grams(strip_tsp_tbsp(ing)) for ing in in_order]
+    labeled = [
+        {
+            "name": strip_parentheses_grams(strip_tsp_tbsp(ing)),
+            "section": classify_ingredient(pipe, ing),
+        }
+        for ing in ingredients
+    ]
 
-    return {"ingredients": wout_tsp_tbsp}
+    return {
+        "ingredients": {
+            section: list(items)
+            for section, items in groupby(
+                sorted(labeled, key=itemgetter("section")),
+                key=itemgetter("section"),
+            )
+        }
+    }
