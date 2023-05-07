@@ -16,7 +16,7 @@ const groceryListApp = () => ({
     },
     recipe_urls: [],
     setIngredients(section, ingredients) {
-        this.ingredients[section] = ingredients;
+        this.ingredients[section] = ingredients.sort((a,b) => (a.item > b.item) ? 1 : ((b.item > a.item) ? -1 : 0));
         this.saveState();
     },
     setRecipeURLs(recipe_urls) {
@@ -42,11 +42,13 @@ const groceryListApp = () => ({
         event.preventDefault();
 
         // retrieve data directly from DOM with magic property root
-        var recipe_url = this.$root.querySelector('.recipe_input').value;
+        var input_text = this.$root.querySelector('.recipe_input').value;
 
-        if (recipe_url) {
+        if (input_text.startsWith('http')) {
 
+            const recipe_url = input_text
             const recipe_id = "id_" + Math.random().toString(16).slice(2)
+
             // use spread function to add the new recipe url
             this.setRecipeURLs([
                 ...this.recipe_urls,
@@ -59,7 +61,7 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            fetch(`https://${this._api_url}?recipe_url=${recipe_url}`)
+            fetch(`http://${this._api_url}?recipe_url=${recipe_url}`)
                 .then((response) => response.json())
                 .then((data) => {
                     Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
@@ -73,6 +75,21 @@ const groceryListApp = () => ({
             // reset the input field
             this.$root.querySelector('.recipe_input').value = '';
 
+        } else {
+
+            const item_text = input_text
+
+            fetch(`http://${this._api_url}/single-item/?item=${item_text}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
+                      ingredient_list.map(i => {
+                        this.addIngredient(event, section, i) })
+                    })
+                });
+
+            // reset the input field
+            this.$root.querySelector('.recipe_input').value = '';
         }
 
     },

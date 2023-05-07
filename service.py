@@ -33,7 +33,9 @@ def strip_prep_instructions(ingredient: str) -> str:
 
     for split_token in prep_words:
         if split_token in ingredient:
-            return ingredient.split(split_token)[0].rstrip(", ")
+            result = ingredient.split(split_token)[0].strip(", ")
+            if len(result) > 0:
+                return result
 
     return ingredient
 
@@ -154,6 +156,31 @@ def main():
             "section": classify_ingredient(pipe, ing),
         }
         for ing in ingredients
+    ]
+
+    return {
+        "ingredients": {
+            section: list(items)
+            for section, items in groupby(
+                sorted(labeled, key=itemgetter("section")),
+                key=itemgetter("section"),
+            )
+        }
+    }
+
+
+@app.route("/single-item/")
+def single_item():
+
+    item = request.args["item"]
+
+    # strip tsp/tbsp separate from classifying because the classifier was trained on ingredient
+    # strings which include tsp / tbsp units
+    labeled = [
+        {
+            "name": strip_parentheses_grams(strip_tsp_tbsp(item)),
+            "section": classify_ingredient(pipe, item),
+        }
     ]
 
     return {

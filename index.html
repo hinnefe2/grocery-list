@@ -45,7 +45,7 @@
             <form>
                 <fieldset>
                     <input class="recipe_input mx-auto d-block" type="text" @keydown.enter="addRecipe"
-                        placeholder="Paste recipe URLs to make a shopping list" autofocus />
+                        placeholder="Paste recipe URLs or type ingredient names" autofocus />
                 </fieldset>
             </form>
         </div>
@@ -67,7 +67,7 @@
         <div class="mt-3 mb-6 task_list">
             <div class="paper-background">
                 <template x-for="[section, section_items] in Object.entries(ingredients)" :key="section">
-                    <div class="w-100" x-show="(section_items.length) || (section === '9')" x-cloak>
+                    <div class="w-100" x-show="section_items.length" x-cloak>
                         <img class="img-fluid mx-auto d-block mt-5" :src="`images/${section}.png`" src="images/vegetables.png" width="50px" height="50px">
                         <template x-for="ingredient in section_items" :key="ingredient.id">
                             <div class="todo w-100 d-flex">
@@ -83,15 +83,6 @@
                         </template>
                     </div>
                 </template>
-                <div class="input_area todo">
-                    <form>
-                        <fieldset>
-                            <input type="checkbox" />
-                            <input class="ingredient_input" type="text" placeholder="milk"
-                                @keydown.enter="addIngredient" />
-                        </fieldset>
-                    </form>
-                </div>
             </div>
         </div>
         <div class="my-3 text-center">
