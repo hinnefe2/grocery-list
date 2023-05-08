@@ -61,7 +61,7 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            fetch(`http://${this._api_url}?recipe_url=${recipe_url}`)
+            fetch(`https://${this._api_url}?recipe_url=${recipe_url}`)
                 .then((response) => response.json())
                 .then((data) => {
                     Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
@@ -79,7 +79,7 @@ const groceryListApp = () => ({
 
             const item_text = input_text
 
-            fetch(`http://${this._api_url}/single-item/?item=${item_text}`)
+            fetch(`https://${this._api_url}/single-item/?item=${item_text}`)
                 .then((response) => response.json())
                 .then((data) => {
                     Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
