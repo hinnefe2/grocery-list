@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 
 
@@ -12,9 +13,14 @@ from typing import List, Optional
 from bs4 import BeautifulSoup
 from flask import Flask, request
 from flask_cors import CORS
-from transformers import pipeline, Pipeline
+from openai import OpenAI
 
-from config import LABEL2ID
+from config import ID2LABEL
+
+
+OPENROUTER_MODEL = os.environ.get(
+    "OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b"
+)
 
 
 def strip_prep_instructions(ingredient: str) -> str:
@@ -125,10 +131,63 @@ def parse_response(response: req.Response) -> List[str]:
     return []
 
 
-def classify_ingredient(pipe: Pipeline, ingredient: str) -> int:
-    label = pipe(ingredient).pop(0)["label"]
-    print(f"\t{label:<16} {ingredient}")
-    return LABEL2ID[label]
+def classify_ingredients(ingredients: List[str]) -> List[int]:
+    """Classify ingredients in one API request, preserving their input order."""
+    if not ingredients:
+        return []
+
+    client = OpenAI(
+        api_key=os.environ["OPENROUTER_API_KEY"],
+        base_url="https://openrouter.ai/api/v1",
+    )
+    response = client.chat.completions.create(
+        model=OPENROUTER_MODEL,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Classify every grocery ingredient into exactly one store section. "
+                    "Return one section ID per input item, in the same order. "
+                    "Use other only when none of the specific sections fit.\n\n"
+                    + "\n".join(
+                        f"{section_id}: {label}"
+                        for section_id, label in ID2LABEL.items()
+                    )
+                ),
+            },
+            {"role": "user", "content": json.dumps(ingredients)},
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "grocery_sections",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "sections": {
+                            "type": "array",
+                            "items": {"type": "integer", "enum": list(ID2LABEL)},
+                            "minItems": len(ingredients),
+                            "maxItems": len(ingredients),
+                        }
+                    },
+                    "required": ["sections"],
+                    "additionalProperties": False,
+                },
+            },
+        },
+        extra_body={"reasoning": {"effort": "none"}},
+    )
+    content = response.choices[0].message.content
+    if content is None:
+        raise ValueError("OpenRouter returned no classification content")
+    sections = json.loads(content)["sections"]
+    if len(sections) != len(ingredients):
+        raise ValueError(
+            f"Expected {len(ingredients)} classifications, received {len(sections)}"
+        )
+    return sections
 
 
 app = Flask(__name__)
@@ -136,7 +195,6 @@ CORS(app)
 
 
 logging.basicConfig(level=logging.INFO)
-pipe = pipeline("text-classification", model="model-files/")
 
 
 @app.route("/")
@@ -148,14 +206,13 @@ def main():
 
     ingredients = parse_response(response)
 
-    # strip tsp/tbsp separate from classifying because the classifier was trained on ingredient
-    # strings which include tsp / tbsp units
+    # Preserve quantities for classification, then remove small cooking measures for display.
     labeled = [
         {
             "name": strip_parentheses_grams(strip_tsp_tbsp(ing)),
-            "section": classify_ingredient(pipe, ing),
+            "section": section,
         }
-        for ing in ingredients
+        for ing, section in zip(ingredients, classify_ingredients(ingredients))
     ]
 
     return {
@@ -174,12 +231,11 @@ def single_item():
 
     item = request.args["item"]
 
-    # strip tsp/tbsp separate from classifying because the classifier was trained on ingredient
-    # strings which include tsp / tbsp units
+    # Preserve quantities for classification, then remove small cooking measures for display.
     labeled = [
         {
             "name": strip_parentheses_grams(strip_tsp_tbsp(item)),
-            "section": classify_ingredient(pipe, item),
+            "section": classify_ingredients([item])[0],
         }
     ]
 

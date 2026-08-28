@@ -4,12 +4,9 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-# copy the pretrained huggingface tokenizer blobs
 ENV APP_HOME /app
 WORKDIR $APP_HOME
-RUN mkdir model-files
 
-COPY model-files model-files
 COPY service.py .
 COPY config.py .
 
