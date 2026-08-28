@@ -202,7 +202,7 @@ def main():
 
     response = req.get(request.args["recipe_url"])
     if response.status_code != 200:
-        return response.status_code
+        return {"error": "Unable to download recipe"}, response.status_code
 
     ingredients = parse_response(response)
 
