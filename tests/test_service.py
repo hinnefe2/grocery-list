@@ -12,11 +12,44 @@ class GroceryListRoutesTest(unittest.TestCase):
     def test_recipe_upstream_error_returns_valid_json_response(self):
         upstream_response = Mock(status_code=404)
 
-        with patch("service.req.get", return_value=upstream_response):
+        with (
+            patch("service.req.get", return_value=upstream_response),
+            patch("service.parse_jtr", return_value=None),
+            patch("service.parse_schollz", return_value=None),
+        ):
             response = self.client.get("/?recipe_url=https://example.com/missing")
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.get_json(), {"error": "Unable to download recipe"})
+
+    def test_recipe_upstream_error_uses_extraction_fallback(self):
+        upstream_response = Mock(status_code=402)
+
+        with (
+            patch("service.req.get", return_value=upstream_response),
+            patch("service.parse_jtr", return_value=["corn", "lime"]),
+            patch("service.classify_ingredients", return_value=[0, 0]),
+        ):
+            response = self.client.get("/?recipe_url=https://example.com/blocked")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get_json(),
+            {
+                "ingredients": {
+                    "0": [
+                        {"name": "corn", "section": 0},
+                        {"name": "lime", "section": 0},
+                    ]
+                }
+            },
+        )
+
+    def test_health(self):
+        response = self.client.get("/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "ok"})
 
     def test_recipe_success_groups_classified_ingredients(self):
         upstream_response = Mock(status_code=200)

@@ -14,9 +14,12 @@ from bs4 import BeautifulSoup
 from flask import Flask, request
 from flask_cors import CORS
 from openai import OpenAI
+from dotenv import load_dotenv
 
 from config import ID2LABEL
 
+
+load_dotenv()
 
 OPENROUTER_MODEL = os.environ.get(
     "OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b"
@@ -200,11 +203,27 @@ logging.basicConfig(level=logging.INFO)
 @app.route("/")
 def main():
 
-    response = req.get(request.args["recipe_url"])
-    if response.status_code != 200:
-        return {"error": "Unable to download recipe"}, response.status_code
-
-    ingredients = parse_response(response)
+    recipe_url = request.args["recipe_url"]
+    response = req.get(
+        recipe_url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (compatible; MakeAGroceryList/1.0; "
+                "+https://makeagrocerylist.com/)"
+            )
+        },
+        timeout=10,
+    )
+    if response.status_code == 200:
+        ingredients = parse_response(response)
+    else:
+        logging.warning(
+            "Recipe URL returned %s; trying extraction fallbacks",
+            response.status_code,
+        )
+        ingredients = parse_jtr(recipe_url) or parse_schollz(recipe_url)
+        if not ingredients:
+            return {"error": "Unable to download recipe"}, response.status_code
 
     # Preserve quantities for classification, then remove small cooking measures for display.
     labeled = [
@@ -224,6 +243,11 @@ def main():
             )
         }
     }
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}
 
 
 @app.route("/single-item/")

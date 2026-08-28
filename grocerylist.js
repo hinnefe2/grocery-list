@@ -1,6 +1,10 @@
+const groceryApiUrl = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? 'http://127.0.0.1:8090'
+    : 'https://grocery-list-5ybpug4gia-uc.a.run.app';
+
 const groceryListApp = () => ({
-    _api_url: 'grocery-list-5ybpug4gia-uc.a.run.app',
-    _api_warmup: fetch(`https://grocery-list-5ybpug4gia-uc.a.run.app`).then((response) => {}),
+    _api_url: groceryApiUrl,
+    _api_warmup: fetch(`${groceryApiUrl}/health`).then((response) => {}),
     // keys here must match the grocery store section ids returned by the API
     ingredients: {
         "0": [],
@@ -61,7 +65,7 @@ const groceryListApp = () => ({
                 }
             ]);
 
-            fetch(`https://${this._api_url}?recipe_url=${recipe_url}`)
+            fetch(`${this._api_url}?recipe_url=${encodeURIComponent(recipe_url)}`)
                 .then((response) => response.json())
                 .then((data) => {
                     Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
@@ -79,7 +83,7 @@ const groceryListApp = () => ({
 
             const item_text = input_text
 
-            fetch(`https://${this._api_url}/single-item/?item=${item_text}`)
+            fetch(`${this._api_url}/single-item/?item=${encodeURIComponent(item_text)}`)
                 .then((response) => response.json())
                 .then((data) => {
                     Object.entries(data.ingredients).forEach(([section, ingredient_list]) => {
