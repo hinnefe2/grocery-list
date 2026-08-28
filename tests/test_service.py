@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from service import app
+from service import app, strip_prep_instructions
 
 
 class GroceryListRoutesTest(unittest.TestCase):
@@ -50,6 +50,14 @@ class GroceryListRoutesTest(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"status": "ok"})
+
+    def test_ingredient_cleanup_preserves_name_and_quantity(self):
+        ingredient = "  1/2 cup   finely chopped fresh cilantro leaves  "
+
+        self.assertEqual(
+            strip_prep_instructions(ingredient),
+            "1/2 cup finely chopped fresh cilantro leaves",
+        )
 
     def test_recipe_success_groups_classified_ingredients(self):
         upstream_response = Mock(status_code=200)

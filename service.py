@@ -27,38 +27,8 @@ OPENROUTER_MODEL = os.environ.get(
 
 
 def strip_prep_instructions(ingredient: str) -> str:
-
-    prep_words = [
-        "very",
-        "roughly",
-        "finely",
-        "chopped",
-        "minced",
-        "diced",
-        "drained",
-        "rinsed",
-        "divided",
-    ]
-
-    for split_token in prep_words:
-        if split_token in ingredient:
-            result = ingredient.split(split_token)[0].strip(", ")
-            if len(result) > 0:
-                return result
-
-    return ingredient
-
-
-def strip_tsp_tbsp(ingredint: str) -> str:
-    """Remove teaspoon / tablespoon quantities"""
-    regex = "(\d/\d|\d+\s+\d/\d|\d+)\s+(tsp|teaspoon|tbsp|tablespoon)s?"
-    return re.sub(regex, "", ingredint)
-
-
-def strip_parentheses_grams(ingredient: str) -> str:
-    """Remove (X  g) quantities"""
-    regex = "\(\d+\s?(g|grams)\)"
-    return re.sub(regex, "", ingredient)
+    """Normalize whitespace without discarding ingredient names or quantities."""
+    return re.sub(r"\s+", " ", ingredient).strip()
 
 
 def parse_ld_json(soup: BeautifulSoup) -> Optional[List[str]]:
@@ -149,13 +119,24 @@ def classify_ingredients(ingredients: List[str]) -> List[int]:
             {
                 "role": "system",
                 "content": (
-                    "Classify every grocery ingredient into exactly one store section. "
-                    "Return one section ID per input item, in the same order. "
-                    "Use other only when none of the specific sections fit.\n\n"
-                    + "\n".join(
-                        f"{section_id}: {label}"
-                        for section_id, label in ID2LABEL.items()
-                    )
+                    "Classify each grocery ingredient by its primary food item into "
+                    "exactly one store section. Ignore quantities and preparation words "
+                    "when deciding. Return one section ID per input item in exactly the "
+                    "same order. Use these boundaries:\n"
+                    "0 produce: fresh fruits, vegetables, peppers, corn, garlic, onions, "
+                    "citrus, and fresh herbs such as cilantro\n"
+                    "1 meat/seafood/deli: fresh meat, poultry, seafood, and deli meat\n"
+                    "2 dairy: milk, butter, cheese, yogurt, cream, and eggs\n"
+                    "3 canned: canned or jarred vegetables, beans, soup, and similar goods\n"
+                    "4 dry goods/baking: flour, sugar, grains, pasta, bread, and baking goods\n"
+                    "5 oil/sauce/condiment: cooking oils, mayonnaise, sauces, dressings, "
+                    "vinegar, and condiments\n"
+                    "6 spices: salt, pepper, dried herbs, chili powder, and seasonings\n"
+                    "7 frozen: any food explicitly sold frozen\n"
+                    "8 alcohol: beer, wine, liquor, and cooking alcohol\n"
+                    "9 other: non-food items or items that truly fit no section\n"
+                    "Examples: corn, lime, jalapeño, garlic, and cilantro are 0; feta is 2; "
+                    "mayonnaise and vegetable oil are 5; salt and chili powder are 6."
                 ),
             },
             {"role": "user", "content": json.dumps(ingredients)},
@@ -180,6 +161,7 @@ def classify_ingredients(ingredients: List[str]) -> List[int]:
                 },
             },
         },
+        temperature=0,
         extra_body={"reasoning": {"effort": "none"}},
     )
     content = response.choices[0].message.content
@@ -225,10 +207,9 @@ def main():
         if not ingredients:
             return {"error": "Unable to download recipe"}, response.status_code
 
-    # Preserve quantities for classification, then remove small cooking measures for display.
     labeled = [
         {
-            "name": strip_parentheses_grams(strip_tsp_tbsp(ing)),
+            "name": ing,
             "section": section,
         }
         for ing, section in zip(ingredients, classify_ingredients(ingredients))
@@ -255,10 +236,9 @@ def single_item():
 
     item = request.args["item"]
 
-    # Preserve quantities for classification, then remove small cooking measures for display.
     labeled = [
         {
-            "name": strip_parentheses_grams(strip_tsp_tbsp(item)),
+            "name": strip_prep_instructions(item),
             "section": classify_ingredients([item])[0],
         }
     ]
