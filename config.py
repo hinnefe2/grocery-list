@@ -7,7 +7,7 @@ LABEL2ID = {
     "oil/sauce/condiment": 5,
     "spices": 6,
     "frozen": 7,
-    "alcohol": 8,
+    "drinks/beverages": 8,
     "other": 9,
 }
 ID2LABEL = {value: key for key, value in LABEL2ID.items()}
