@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from config import ID2LABEL
+from config import GROCERY_SECTIONS
 from service import app, strip_prep_instructions
 
 
@@ -53,7 +53,8 @@ class GroceryListRoutesTest(unittest.TestCase):
         self.assertEqual(response.get_json(), {"status": "ok"})
 
     def test_section_eight_covers_all_beverages(self):
-        self.assertEqual(ID2LABEL[8], "drinks/beverages")
+        section = next(section for section in GROCERY_SECTIONS if section["id"] == 8)
+        self.assertEqual(section["label"], "drinks/beverages")
 
     def test_ingredient_cleanup_preserves_name_and_quantity(self):
         ingredient = "  1/2 cup   finely chopped fresh cilantro leaves  "

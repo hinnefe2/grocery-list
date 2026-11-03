@@ -5,18 +5,18 @@ const groceryApiUrl = ['localhost', '127.0.0.1'].includes(window.location.hostna
 const groceryListApp = () => ({
     _api_url: groceryApiUrl,
     _api_warmup: fetch(`${groceryApiUrl}/health`).then((response) => {}),
-    // keys here must match the grocery store section ids returned by the API
-    ingredients: {
-        "0": [],
-        "1": [],
-        "2": [],
-        "3": [],
-        "4": [],
-        "5": [],
-        "6": [],
-        "7": [],
-        "8": [],
-        "9": [],
+    sections: {},
+    ingredients: {},
+    init() {
+        fetch(`${this._api_url}/sections`)
+            .then((response) => {
+                if (!response.ok) throw new Error('Unable to load grocery sections');
+                return response.json();
+            })
+            .then((data) => {
+                this.sections = Object.fromEntries(data.sections.map((section) => [section.id, section]));
+            })
+            .catch(console.error);
     },
     recipe_urls: [],
     setIngredients(section, ingredients) {
@@ -106,7 +106,7 @@ const groceryListApp = () => ({
             // use spread function to add new todo
             this.setIngredients(section,
                 [
-                ...this.ingredients[section],
+                ...(this.ingredients[section] || []),
                 {
                     id,
                     recipe_id: recipe_id,
@@ -124,7 +124,7 @@ const groceryListApp = () => ({
             // use spread function to add new todo
             this.setIngredients(section,
                 [
-                ...this.ingredients[section],
+                ...(this.ingredients[section] || []),
                 {
                     id,
                     recipe_id: recipe_id,
