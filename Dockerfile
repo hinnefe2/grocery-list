@@ -10,4 +10,4 @@ WORKDIR $APP_HOME
 COPY service.py .
 COPY config.py .
 
-CMD exec gunicorn --timeout 75 -b 0.0.0.0:${PORT} service:app
+CMD exec gunicorn --timeout 90 -b 0.0.0.0:${PORT} service:app

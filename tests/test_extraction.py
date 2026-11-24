@@ -130,6 +130,9 @@ class ExtractionRoutesTest(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True)
         self.client = app.test_client()
+        cleanup = patch("service.simplify_ingredients", side_effect=lambda items: items)
+        cleanup.start()
+        self.addCleanup(cleanup.stop)
 
     def test_blocked_download_tries_second_service_after_first_times_out(self):
         schollz = Mock(json=Mock(return_value={

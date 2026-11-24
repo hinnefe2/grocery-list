@@ -9,6 +9,9 @@ class GroceryListRoutesTest(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True)
         self.client = app.test_client()
+        cleanup = patch("service.simplify_ingredients", side_effect=lambda items: items)
+        cleanup.start()
+        self.addCleanup(cleanup.stop)
 
     def test_recipe_upstream_error_returns_valid_json_response(self):
         upstream_response = Mock(status_code=404)

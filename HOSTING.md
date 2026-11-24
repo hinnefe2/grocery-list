@@ -58,8 +58,21 @@ including objects, arrays, nested `@graph` entries, and multiple JSON-LD scripts
 If none is usable, the backend removes scripts, styles, comments, navigation, and
 other clutter from the HTML and sends it to OpenRouter Chat Completions for a
 structured ingredient list. Ingredient quantities, units, and preparation wording
-are preserved; only whitespace is normalized. Grocery-section classification
-runs after extraction and uses its own model setting.
+are preserved during extraction; only whitespace is normalized.
+
+After any extraction source succeeds, a separate batched model call rewrites the
+lines into concise shopping entries. It removes prep instructions and redundant
+conversions, preserves fractional quantities without rounding
+(for example, `1/2 white onion, chopped (113g)` becomes `1/2 white onion`),
+and removes small spoon measures for seasonings, oils, and condiments. Useful
+weights, volumes, package sizes, counts, varieties, and shopping forms such as
+canned, frozen, or dried are retained. Cleanup keeps one entry per original line;
+it does not combine duplicates or invent package/bunch sizes. If cleanup fails,
+returns incomplete/invalid output, or times out, the original lines are used.
+
+Grocery-section classification uses the original ingredient lines so display
+cleanup does not discard classification context. Manually entered items bypass
+model cleanup. All three model tasks have independent model settings.
 
 JustTheRecipe and schollz remain recovery services for failed downloads (non-200
 responses or request failures), in that order. They are not called when a downloaded
@@ -72,11 +85,11 @@ tokens. Oversize inputs and incomplete/invalid model responses fail explicitly
 rather than returning a partial list. The recipe endpoint returns JSON errors:
 `422` when no ingredients are found, `502` for extraction failures, and the
 original upstream status when download recovery fails (`502` for network errors).
-The Gunicorn worker timeout is 75 seconds to accommodate fetching, extraction,
-and classification in sequence.
+The Gunicorn worker timeout is 90 seconds to accommodate fetching, extraction,
+cleanup, and classification in sequence.
 
 Run the mocked backend checks with `python -m unittest discover -s tests -v`.
-These cover parsing, model request/response handling, and download recovery;
+These cover parsing, model request/response handling, cleanup fallback, and download recovery;
 they do not measure live model accuracy or external-service availability.
 
 ## Runtime configuration
@@ -86,6 +99,7 @@ The Cloud Run service requires:
 - `OPENROUTER_API_KEY`: required; expose Google Secret Manager secret `projects/303187280065/secrets/openrouter-api-key` to the container under this name.
 - `OPENROUTER_MODEL`: optional classification model; defaults to `openai/gpt-6-luna-decisions`.
 - `OPENROUTER_EXTRACTION_MODEL`: optional HTML extraction model; defaults to `anthropic/claude-haiku-4.5`. Uses the same `OPENROUTER_API_KEY`; the selected provider must support JSON Schema structured outputs.
+- `OPENROUTER_CLEANUP_MODEL`: optional shopping-entry cleanup model; defaults to `anthropic/claude-haiku-4.5`. Uses the same API key and requires JSON Schema structured outputs. Cleanup adds one batched call per recipe.
 - `PORT`: supplied automatically by Cloud Run.
 
 Do not put API keys in `grocerylist.js`, committed files, the Docker image, or the static storage bucket. Local `.env` files are ignored by Git.
