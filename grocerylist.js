@@ -29,14 +29,20 @@ const groceryListApp = () => ({
     },
     saveState() {
         var base_url = location.protocol + '//' + location.host + location.pathname;
-        var encoded = btoa(JSON.stringify({ "ingredients": this.ingredients, "recipe_urls": this.recipe_urls }))
-        window.history.pushState({}, "", base_url + "?q=" + encoded);
+        // btoa only accepts Latin-1. JSON escapes preserve Unicode (including
+        // curly apostrophes and emoji) without changing the saved-link format.
+        const json = JSON.stringify({ ingredients: this.ingredients, recipe_urls: this.recipe_urls });
+        const encoded = btoa(json.replace(/[\u0080-\uffff]/g, (character) =>
+            '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')));
+        window.history.pushState({}, "", base_url + "?q=" + encodeURIComponent(encoded));
     },
     loadState() {
         var q_param = new URLSearchParams(location.search).get('q');
 
         if (q_param) {
-            var decoded = JSON.parse(atob(q_param));
+            // Older links did not escape '+' in base64, so URLSearchParams
+            // converts those characters into spaces. Restore them before decoding.
+            var decoded = JSON.parse(atob(q_param.replace(/ /g, '+')));
             this.recipe_urls = decoded["recipe_urls"];
             this.ingredients = decoded["ingredients"];
         };
@@ -73,7 +79,11 @@ const groceryListApp = () => ({
                         this.addIngredient(event, section, i, recipe_id) })
                     })
                 }).finally((_) => {
-                    this.recipe_urls.find((recipe) => recipe.recipe_id == recipe_id).loading = false
+                    const recipe = this.recipe_urls.find((recipe) => recipe.recipe_id == recipe_id);
+                    if (recipe) {
+                        recipe.loading = false;
+                        this.saveState();
+                    }
                 });
 
             // reset the input field

@@ -31,6 +31,11 @@ Pushes to `main` run `.github/workflows/main.yaml`, which syncs the static files
 
 The workflow deliberately excludes backend source and deployment files. It does not deploy Cloud Run.
 
+Shared lists store base64-encoded JSON in the URL. Unicode is escaped in the JSON
+before encoding, and the base64 query value is URL-encoded. Older Latin-1 links
+remain readable. Run frontend import and shared-link regression tests with
+`node .github/tests/test_grocerylist.cjs` (Node.js 18 or newer; no npm dependencies).
+
 ## Backend API
 
 The backend is a Flask service defined in `service.py` and packaged with `Dockerfile`. The browser calls it directly using the hostname configured near the top of `grocerylist.js`.
