@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from config import GROCERY_SECTIONS
-from service import app, strip_prep_instructions
+from service import app, normalize_whitespace
 
 
 class GroceryListRoutesTest(unittest.TestCase):
@@ -60,7 +60,7 @@ class GroceryListRoutesTest(unittest.TestCase):
         ingredient = "  1/2 cup   finely chopped fresh cilantro leaves  "
 
         self.assertEqual(
-            strip_prep_instructions(ingredient),
+            normalize_whitespace(ingredient),
             "1/2 cup finely chopped fresh cilantro leaves",
         )
 
